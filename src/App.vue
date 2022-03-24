@@ -1,5 +1,9 @@
-<script setup lang="ts"></script>
+<script setup lang="ts">
+import ImageEdit from './views/ImageEdit.vue';
+</script>
 
-<template></template>
+<template>
+  <ImageEdit />
+</template>
 
 <style scoped></style>
