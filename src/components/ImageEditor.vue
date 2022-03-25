@@ -1,7 +1,7 @@
 <template>
-  <div class="image-editor">
+  <div v-loading="isLoading" style="width: 100%" class="image-editor">
     <div class="image-editor-layout">
-      <div class="image-editor-preview">
+      <div class="image-editor-main">
         <h2 class="image-editor-heading">
           編集メニュー
           <el-tooltip
@@ -17,8 +17,10 @@
           <el-button type="primary" plain>左に90°回転</el-button>
         </div>
         <div class="image-canvas">
-          <canvas class="display" />
-          <canvas ref="drawingCanvas" class="drawing" />
+          <div ref="canvasContainer" class="image-canvas">
+            <canvas ref="displayCanvas" class="display" />
+            <canvas ref="drawingCanvas" class="drawing" />
+          </div>
         </div>
         <div class="operations">
           <el-button class="resetButton" plain :icon="RefreshLeft"
@@ -28,14 +30,22 @@
             >編集した画像をダウンロード</el-button
           >
         </div>
-        <el-button class="returnButton" type="text" plain :icon="Back"
+        <el-button
+          class="returnButton"
+          type="text"
+          plain
+          :icon="Back"
+          @click="returnUploader"
           >画像を選択し直す</el-button
         >
       </div>
       <div class="image-editor-panel">
         <div class="panel-block">
           <h2 class="image-editor-heading">編集情報</h2>
-          <p class="text">現在のサイズ：500 × 500 px</p>
+          <p class="text">
+            現在のサイズ：{{ uploadImage.currentSize.width }} ×
+            {{ uploadImage.currentSize.height }} px
+          </p>
           <p class="text">選択範囲：230 × 230 px</p>
         </div>
         <div class="panel-block">
@@ -67,12 +77,153 @@
 </template>
 
 <script setup lang="ts">
+import { ref, reactive, onMounted } from 'vue';
+import { UploadFile, UploadRawFile, ElNotification } from 'element-plus';
 import {
   QuestionFilled,
   Download,
   RefreshLeft,
   Back,
 } from '@element-plus/icons-vue';
+
+interface UploadImage {
+  originalFile: UploadRawFile | undefined;
+  currentSize: {
+    width: number;
+    height: number;
+  };
+}
+
+interface CanvasSetting {
+  displayReductionRatio: number;
+}
+
+const props = defineProps<{
+  uploadFile: UploadFile | undefined;
+}>();
+
+onMounted(() => {
+  setCanvasImage();
+});
+
+const isLoading = ref(true);
+
+const openLoading = () => {
+  isLoading.value = true;
+};
+
+const closeLoading = () => {
+  isLoading.value = false;
+};
+
+const uploadImage: UploadImage = reactive({
+  originalFile: undefined,
+  currentSize: {
+    width: 0,
+    height: 0,
+  },
+});
+
+const canvas: CanvasSetting = reactive({
+  displayReductionRatio: 1,
+});
+
+const canvasContainer = ref<HTMLElement>();
+
+const displayCanvas = ref<HTMLCanvasElement>();
+const displayCanvasCtx = ref<CanvasRenderingContext2D | null>();
+
+const drawingCanvas = ref<HTMLCanvasElement>();
+const drawingCanvasCtx = ref<CanvasRenderingContext2D | null>();
+
+const calculateCanvasRatio = () => {
+  if (displayCanvas.value === undefined) return;
+  canvas.displayReductionRatio =
+    displayCanvas.value.clientWidth / displayCanvas.value.width;
+};
+
+const resizeCanvasContainer = (width: number, height: number) => {
+  if (canvasContainer.value === undefined) return;
+  canvasContainer.value.style.width =
+    width * canvas.displayReductionRatio + 'px';
+  canvasContainer.value.style.height =
+    height * canvas.displayReductionRatio + 'px';
+};
+
+const resizeDrawingCanvas = (width: number, height: number) => {
+  if (drawingCanvas.value === undefined) return;
+  drawingCanvas.value.width = width;
+  drawingCanvas.value.height = height;
+};
+
+const saveUploadImageCurrentSize = (width: number, height: number) => {
+  uploadImage.currentSize.width = width;
+  uploadImage.currentSize.height = height;
+};
+
+const showErrorMessage = (message: string) => {
+  ElNotification({
+    title: 'Error',
+    message: message,
+    type: 'error',
+  });
+};
+
+const setCanvasImage = () => {
+  openLoading();
+
+  if (displayCanvas.value === undefined || drawingCanvas.value === undefined)
+    return;
+  displayCanvasCtx.value = displayCanvas.value.getContext('2d');
+  drawingCanvasCtx.value = drawingCanvas.value.getContext('2d');
+
+  uploadImage.originalFile = props.uploadFile?.raw;
+
+  if (uploadImage.originalFile === undefined) return;
+
+  const image = new Image();
+  image.crossOrigin = 'anonymous';
+
+  const fileReader = new FileReader();
+
+  fileReader.onload = (event) => {
+    image.onload = () => {
+      const width = image.width;
+      const height = image.height;
+
+      if (displayCanvas.value === undefined) return;
+      displayCanvas.value.width = width;
+      displayCanvas.value.height = height;
+
+      calculateCanvasRatio();
+      saveUploadImageCurrentSize(width, height);
+      resizeCanvasContainer(width, height);
+      resizeDrawingCanvas(width, height);
+
+      displayCanvasCtx.value?.drawImage(image, 0, 0);
+
+      closeLoading();
+    };
+    image.onerror = () => {
+      showErrorMessage(
+        '画像の読み込みに失敗しました。しばらく経ってから、もう一度お試しください。'
+      );
+      returnUploader();
+    };
+
+    const result = event.target?.result;
+    image.src = result as string;
+  };
+  fileReader.readAsDataURL(uploadImage.originalFile);
+};
+
+const emit = defineEmits<{
+  (e: 'returnUploader'): void;
+}>();
+
+const returnUploader = () => {
+  emit('returnUploader');
+};
 </script>
 
 <style scoped lang="scss">
@@ -83,7 +234,7 @@ import {
     flex-direction: column;
     justify-content: flex-start;
   }
-  > .image-editor-preview {
+  > .image-editor-main {
     padding: 16px 16px 16px 0;
   }
   > .image-editor-panel {
@@ -106,7 +257,7 @@ import {
   }
 }
 
-.image-editor-preview {
+.image-editor-main {
   .image-editor-heading {
     margin-bottom: 1em;
   }
