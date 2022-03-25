@@ -57,7 +57,7 @@ const handleChange = (file: UploadFile) => {
     uploadFile.value.clearFiles();
     ElMessage({
       showClose: true,
-      message: '画像のアップロードは「jpg/jpeg, png」形式のみ対応しています。',
+      message: '画像のアップロードは「jpg/jpeg, png」形式に対応しています。',
       type: 'warning',
     });
   }
