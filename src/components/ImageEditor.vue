@@ -7,7 +7,7 @@
           <el-tooltip
             content="画像をトリミングするには、画像上をクリックしてからドラッグで範囲を選択して、<br>「選択範囲をトリミング」ボタンを押下してください。<br>選択範囲のサイズは「編集情報」で確認できます。"
             raw-content
-            placement="bottom-start">
+            placement="top-start">
             <el-button class="tooltipIcon" :icon="QuestionFilled" circle />
           </el-tooltip>
         </h2>
@@ -79,7 +79,7 @@
             <el-tooltip
               content="元の画像のサイズ比率を保ったまま、サイズを変更できます。<br>現在のサイズより拡大することはできません。<br><br>トリミング範囲選択中にリサイズすると、選択範囲が解除されます。<br>トリミング後に縮尺の変更を行いたい場合は、<br>範囲選択後に「選択範囲をトリミング」を押下してから、<br>リサイズを行って下さい。"
               raw-content
-              placement="bottom-start">
+              placement="top-start">
               <el-button class="tooltipIcon" :icon="QuestionFilled" circle />
             </el-tooltip>
           </h2>
@@ -957,7 +957,7 @@ onBeforeUnmount(() => {
   > .menu {
     display: flex;
     flex-wrap: wrap;
-    margin-bottom: 30px;
+    margin-bottom: 20px;
   }
   // eslint-disable-next-line vue-scoped-css/no-unused-selector
   > .menu > .el-button + .el-button {
@@ -969,7 +969,7 @@ onBeforeUnmount(() => {
     margin-bottom: 10px;
   }
   > .operations {
-    margin-top: 2em;
+    margin-top: 28px;
     @include pre.mq(minimum) {
       display: flex;
       flex-wrap: wrap;
@@ -1039,7 +1039,7 @@ onBeforeUnmount(() => {
     margin-bottom: 1em;
   }
   > .resizeButton {
-    margin-top: 2em;
+    margin-top: 24px;
   }
 }
 
