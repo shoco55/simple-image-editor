@@ -19,8 +19,12 @@
             @click="cropImage"
             >選択範囲をトリミング</el-button
           >
-          <el-button type="primary" plain>右に90°回転</el-button>
-          <el-button type="primary" plain>左に90°回転</el-button>
+          <el-button type="primary" plain @click="rotateImage('right')"
+            >右に90°回転</el-button
+          >
+          <el-button type="primary" plain @click="rotateImage('left')"
+            >左に90°回転</el-button
+          >
         </div>
         <div class="image-canvas">
           <div ref="canvasContainer" class="image-canvas">
@@ -765,6 +769,44 @@ const resetRectPosition = () => {
   canvas.hasRect = false;
 };
 
+const rotateImage = (direction: 'left' | 'right') => {
+  openLoading();
+
+  resetDrawingCanvas();
+
+  if (displayCanvas.value === undefined) return;
+  const base64 = displayCanvas.value.toDataURL(uploadImage.originalFile?.type);
+  const image = new Image();
+
+  image.onload = () => {
+    if (displayCanvas.value === undefined) return;
+    const width = displayCanvas.value.height;
+    const height = displayCanvas.value.width;
+
+    displayCanvas.value.width = width;
+    displayCanvas.value.height = height;
+
+    saveUploadImageCurrentSize(width, height);
+    resizeCanvasContainer(width, height);
+    resizeDrawingCanvas(width, height);
+
+    const degree = direction === 'right' ? 90 : -90;
+
+    if (displayCanvasCtx.value == undefined) return;
+    displayCanvasCtx.value.save();
+    displayCanvasCtx.value.translate(width / 2, height / 2);
+    displayCanvasCtx.value.rotate((degree * Math.PI) / 180);
+    displayCanvasCtx.value.translate(-image.width / 2, -image.height / 2);
+    displayCanvasCtx.value.drawImage(image, 0, 0);
+    displayCanvasCtx.value.restore();
+
+    resetRectPosition();
+    closeLoading();
+  };
+
+  image.src = base64;
+};
+
 const emit = defineEmits<{
   (e: 'returnUploader'): void;
 }>();
@@ -792,7 +834,6 @@ onBeforeUnmount(() => {
   }
   > .image-editor-panel {
     width: 372px;
-    height: 100%;
     padding: 16px 16px 24px;
     background: #f7f7f7;
     @include pre.mq(medium) {
