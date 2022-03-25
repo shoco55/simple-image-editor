@@ -44,7 +44,7 @@
             @click="resetCanvasImage"
             >リセット</el-button
           >
-          <el-button type="primary" :icon="Download"
+          <el-button type="primary" :icon="Download" @click="downloadImage"
             >編集した画像をダウンロード</el-button
           >
         </div>
@@ -881,6 +881,29 @@ const resizeImage = () => {
   };
 
   image.src = base64;
+};
+
+const downloadImage = () => {
+  if (displayCanvas.value === undefined) return;
+  const base64 = displayCanvas.value.toDataURL(uploadImage.originalFile?.type);
+  const blob = Base64toBlob(base64);
+
+  const a = document.createElement('a');
+  a.href = window.URL.createObjectURL(blob);
+  if (uploadImage.originalFile === undefined) return;
+  a.download = uploadImage.originalFile.name;
+  a.click();
+};
+
+const Base64toBlob = (base64: string) => {
+  const tmp = base64.split(',');
+  const data = atob(tmp[1]);
+  const buffer = new Uint8Array(data.length);
+  for (var i = 0; i < data.length; i++) {
+    buffer[i] = data.charCodeAt(i);
+  }
+  const blob = new Blob([buffer], { type: uploadImage.originalFile?.name });
+  return blob;
 };
 
 const emit = defineEmits<{
