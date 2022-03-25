@@ -67,8 +67,8 @@
           <p class="text">
             選択範囲：
             <template v-if="canvas.hasRect"
-              >{{ canvas.croppedSize.width }} ×
-              {{ canvas.croppedSize.height }} px</template
+              >{{ uploadImage.cropSize.width }} ×
+              {{ uploadImage.cropSize.height }} px</template
             >
             <template v-else>未選択</template>
           </p>
@@ -86,14 +86,26 @@
           <div class="resize-form">
             <span class="label">新規サイズ：</span>
             <div class="content">
-              <el-input-number controls-position="right" />
+              <el-input-number
+                v-model="uploadImage.resize.width"
+                :min="1"
+                :max="uploadImage.currentSize.width"
+                controls-position="right"
+                @change="onChangeResizeWidth" />
               <span>×</span>
-              <el-input-number controls-position="right" />
+              <el-input-number
+                v-model="uploadImage.resize.height"
+                :min="1"
+                :max="uploadImage.currentSize.height"
+                controls-position="right"
+                @change="onChangeResizeHeight" />
               <span>px</span>
             </div>
           </div>
           <div class="resizeButton">
-            <el-button type="primary" plain>新規サイズに変更</el-button>
+            <el-button type="primary" plain @click="resizeImage"
+              >新規サイズに変更</el-button
+            >
           </div>
         </div>
       </div>
@@ -124,13 +136,17 @@ interface UploadImage {
     width: number;
     height: number;
   };
-}
-
-interface CanvasSetting {
-  croppedSize: {
+  cropSize: {
     width: number;
     height: number;
   };
+  resize: {
+    width: number;
+    height: number;
+  };
+}
+
+interface CanvasSetting {
   displayReductionRatio: number;
   mouseDownX: number;
   mouseDownY: number;
@@ -174,13 +190,17 @@ const uploadImage: UploadImage = reactive({
     width: 0,
     height: 0,
   },
-});
-
-const canvas: CanvasSetting = reactive({
-  croppedSize: {
+  cropSize: {
     width: 0,
     height: 0,
   },
+  resize: {
+    width: 0,
+    height: 0,
+  },
+});
+
+const canvas: CanvasSetting = reactive({
   displayReductionRatio: 1,
   mouseDownX: 0,
   mouseDownY: 0,
@@ -582,11 +602,11 @@ const drawRectDrawingCanvas = () => {
 };
 
 watchEffect(() => {
-  canvas.croppedSize.width = canvas.tempRectEndX - canvas.tempRectStartX;
+  uploadImage.cropSize.width = canvas.tempRectEndX - canvas.tempRectStartX;
 });
 
 watchEffect(() => {
-  canvas.croppedSize.height = canvas.tempRectEndY - canvas.tempRectStartY;
+  uploadImage.cropSize.height = canvas.tempRectEndY - canvas.tempRectStartY;
 });
 
 const selectCropArea = (event: MouseEvent) => {
@@ -599,7 +619,7 @@ const selectCropArea = (event: MouseEvent) => {
 };
 
 const canCrop = computed(() => {
-  return canvas.croppedSize.width > 0 && canvas.croppedSize.height > 0;
+  return uploadImage.cropSize.width > 0 && uploadImage.cropSize.height > 0;
 });
 
 const changeCursorStyle = () => {
@@ -699,7 +719,8 @@ const saveRectPosition = () => {
 const cropImage = () => {
   openLoading();
 
-  if (canvas.croppedSize.width === 0 || canvas.croppedSize.height === 0) return;
+  if (uploadImage.cropSize.width === 0 || uploadImage.cropSize.height === 0)
+    return;
 
   if (displayCanvas.value === undefined) return;
   const base64 = displayCanvas.value.toDataURL(uploadImage.originalFile?.type);
@@ -707,8 +728,8 @@ const cropImage = () => {
 
   image.onload = () => {
     if (displayCanvasCtx.value == undefined) return;
-    const width = canvas.croppedSize.width;
-    const height = canvas.croppedSize.height;
+    const width = uploadImage.cropSize.width;
+    const height = uploadImage.cropSize.height;
 
     if (displayCanvas.value === undefined) return;
     displayCanvas.value.width = width;
@@ -799,6 +820,61 @@ const rotateImage = (direction: 'left' | 'right') => {
     displayCanvasCtx.value.translate(-image.width / 2, -image.height / 2);
     displayCanvasCtx.value.drawImage(image, 0, 0);
     displayCanvasCtx.value.restore();
+
+    resetRectPosition();
+    closeLoading();
+  };
+
+  image.src = base64;
+};
+
+watchEffect(() => {
+  uploadImage.resize.width = uploadImage.currentSize.width;
+});
+
+watchEffect(() => {
+  uploadImage.resize.height = uploadImage.currentSize.height;
+});
+
+const onChangeResizeWidth = (currentValue: number) => {
+  changeResizeSideSize(currentValue, 'width');
+};
+
+const onChangeResizeHeight = (currentValue: number) => {
+  changeResizeSideSize(currentValue, 'height');
+};
+
+const changeResizeSideSize = (
+  currentValue: number,
+  changedSize: 'width' | 'height'
+) => {
+  const sideSize = changedSize === 'width' ? 'height' : 'width';
+  const ratio = currentValue / uploadImage.currentSize[changedSize];
+  uploadImage.resize[sideSize] = Math.round(
+    uploadImage.currentSize[sideSize] * ratio
+  );
+};
+
+const resizeImage = () => {
+  if (displayCanvas.value === undefined) return;
+  const base64 = displayCanvas.value.toDataURL(uploadImage.originalFile?.type);
+  const image = new Image();
+
+  image.onload = () => {
+    if (displayCanvasCtx.value == undefined) return;
+    const width = uploadImage.resize.width;
+    const height = uploadImage.resize.height;
+
+    if (displayCanvas.value === undefined) return;
+    displayCanvas.value.width = width;
+    displayCanvas.value.height = height;
+
+    calculateCanvasRatio();
+    saveUploadImageCurrentSize(width, height);
+    resizeCanvasContainer(width, height);
+    resizeDrawingCanvas(width, height);
+
+    displayCanvasCtx.value.drawImage(image, 0, 0, width, height);
 
     resetRectPosition();
     closeLoading();
