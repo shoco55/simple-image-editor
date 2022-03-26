@@ -27,8 +27,12 @@
 
 <script setup lang="ts">
 import { ref } from 'vue';
-import { ElMessage, UploadFile } from 'element-plus';
+import { UploadFile } from 'element-plus';
 import { Upload } from '@element-plus/icons-vue';
+
+import { useMessage } from '../composables/useMessage';
+
+const { showMessage } = useMessage();
 
 const emit = defineEmits<{
   (e: 'goToEditor', file: UploadFile): void;
@@ -38,11 +42,7 @@ const uploadFile = ref();
 
 const handleExceed = (files: File[]) => {
   if (files.length > 1) {
-    ElMessage({
-      showClose: true,
-      message: '選択できるファイル数は1個です。',
-      type: 'warning',
-    });
+    showMessage('warning', '選択できるファイル数は1個です。', true);
   } else {
     uploadFile.value.clearFiles();
     uploadFile.value.handleStart(files[0]);
@@ -55,11 +55,11 @@ const handleChange = (file: UploadFile) => {
     goToEditor(file);
   } else {
     uploadFile.value.clearFiles();
-    ElMessage({
-      showClose: true,
-      message: '画像のアップロードは「jpg/jpeg, png」形式に対応しています。',
-      type: 'warning',
-    });
+    showMessage(
+      'warning',
+      '画像のアップロードは「jpg/jpeg, png」形式に対応しています。',
+      true
+    );
   }
 };
 
@@ -68,12 +68,11 @@ const goToEditor = (file: UploadFile) => {
 };
 
 const handleError = () => {
-  ElMessage({
-    showClose: true,
-    message:
-      'エラーが発生しました。しばらく経ってから、もう一度お試しください。',
-    type: 'error',
-  });
+  showMessage(
+    'error',
+    'エラーが発生しました。しばらく経ってから、もう一度お試しください。',
+    true
+  );
 };
 </script>
 
