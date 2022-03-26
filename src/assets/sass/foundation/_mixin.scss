@@ -1,0 +1,15 @@
+@mixin mq($breakpoint: minimum) {
+  @if $breakpoint == minimum {
+    @media screen and (max-width: 560px) {
+      @content;
+    }
+  } @else if $breakpoint == medium {
+    @media screen and (max-width: 960px) {
+      @content;
+    }
+  } @else if $breakpoint == large {
+    @media screen and (mix-width: 961px) {
+      @content;
+    }
+  }
+}
