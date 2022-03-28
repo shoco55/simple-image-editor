@@ -1,11 +1,45 @@
-# Vue 3 + Typescript + Vite
+# Simple image editor
 
-This template should help get you started developing with Vue 3 and Typescript in Vite. The template uses Vue 3 `<script setup>` SFCs, check out the [script setup docs](https://v3.vuejs.org/api/sfc-script-setup.html#sfc-script-setup) to learn more.
+### 目次
 
-## Recommended IDE Setup
+- アプリケーションの概要
+- URL
+- 機能一覧
+- 利用技術一覧
+- ローカル動作環境・動作方法
 
-- [VSCode](https://code.visualstudio.com/) + [Volar](https://marketplace.visualstudio.com/items?itemName=johnsoncodehk.volar)
+## アプリケーションの概要
 
-## Type Support For `.vue` Imports in TS
+トリミング・回転・リサイズができる画像編集アプリケーションです。
 
-Since TypeScript cannot handle type information for `.vue` imports, they are shimmed to be a generic Vue component type by default. In most cases this is fine if you don't really care about component prop types outside of templates. However, if you wish to get actual prop types in `.vue` imports (for example to get props validation when using manual `h(...)` calls), you can enable Volar's `.vue` type support plugin by running `Volar: Switch TS Plugin on/off` from VSCode command palette.
+## URL
+
+https://shoco55.github.io/simple-image-editor/
+
+## 機能一覧
+
+- 画像アップロード機能
+  ローカルから画像を選択します。サーバーには保存しません。
+- 画像編集機能
+  - トリミング
+  - 回転（90° ずつ）
+  - リサイズ（オリジナルサイズからの縮小のみ、拡大は不可）
+- 画像ダウンロード機能
+  編集後の画像をローカルにダウンロードします。
+
+## 利用技術一覧
+
+- Vue.js 3.2
+- TypeScript
+- Element Plus（Vue 3 UI Framework）
+- Vite
+- GitHub Pages
+
+## ローカル動作環境・動作方法
+
+- yarn 1.22.10
+- node 16.13.1
+
+1. yarn install
+2. yarn dev
+
