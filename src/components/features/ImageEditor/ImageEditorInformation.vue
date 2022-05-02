@@ -2,14 +2,13 @@
   <div class="image-information">
     <h2 class="heading">編集情報</h2>
     <p class="text">
-      現在のサイズ：{{ props.imageSize.current.width }} ×
-      {{ props.imageSize.current.height }} px
+      現在のサイズ：{{ imageSize.current.width }} ×
+      {{ imageSize.current.height }} px
     </p>
     <p class="text">
       選択範囲：
-      <template v-if="props.canvasState.hasRect"
-        >{{ props.imageSize.crop.width }} ×
-        {{ props.imageSize.crop.height }} px</template
+      <template v-if="canvasState.hasRect"
+        >{{ imageSize.crop.width }} × {{ imageSize.crop.height }} px</template
       >
       <template v-else>未選択</template>
     </p>
@@ -17,7 +16,7 @@
 </template>
 
 <script setup lang="ts">
-import { ImageSize } from '@/types/ImageSize';
+import { ImageSize } from '@/types/image';
 import { CanvasState } from '@/types/canvas';
 
 const props = defineProps<{

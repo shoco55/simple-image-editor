@@ -17,16 +17,9 @@
           </div>
         </div>
         <div class="operations">
-          <el-button
-            class="resetButton"
-            plain
-            :icon="RefreshLeft"
-            @click="resetCanvasImage"
-            >リセット</el-button
-          >
-          <el-button type="primary" :icon="Download" @click="onClickDownload"
-            >編集した画像をダウンロード</el-button
-          >
+          <ImageEditorOperation
+            :reset-canvas-image="resetCanvasImage"
+            :on-click-download="onClickDownload" />
         </div>
         <el-button
           class="returnButton"
@@ -57,7 +50,7 @@
 <script setup lang="ts">
 import { ref, watchEffect, onMounted, onBeforeUnmount } from 'vue';
 import { UploadFile } from 'element-plus';
-import { Download, RefreshLeft, Back } from '@element-plus/icons-vue';
+import { Back } from '@element-plus/icons-vue';
 
 import ImageEditorMenu from '@/components/features/ImageEditor/ImageEditorMenu.vue';
 import ImageEditorInformation from '@/components/features/ImageEditor/ImageEditorInformation.vue';
@@ -71,6 +64,7 @@ import { useFileDownload } from '@/composables/useFileDownload';
 import { useBase64toBlob } from '@/composables/useBase64toBlob';
 import { useLoading } from '@/composables/useLoading';
 import { useMessage } from '@/composables/useMessage';
+import ImageEditorOperation from './ImageEditorOperation.vue';
 
 const props = defineProps<{
   uploadFile: UploadFile | undefined;
@@ -490,17 +484,6 @@ onBeforeUnmount(() => {
       flex-wrap: wrap;
       flex-direction: column-reverse;
       align-items: flex-start;
-    }
-  }
-  // eslint-disable-next-line vue-scoped-css/no-unused-selector
-  > .operations > .el-button + .el-button {
-    margin-left: 0; // Element Plus default CSS 打ち消し
-  }
-  // eslint-disable-next-line vue-scoped-css/no-unused-selector
-  > .operations > .el-button:not(:last-of-type) {
-    margin-right: 10px;
-    @include pre.mq(minimum) {
-      margin-top: 10px;
     }
   }
   > .returnButton {

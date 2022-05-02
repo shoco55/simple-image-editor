@@ -13,7 +13,7 @@
       <el-button
         type="primary"
         plain
-        :disabled="!props.canCrop"
+        :disabled="!canCrop"
         @click="cropCanvasImage"
         >選択範囲をトリミング</el-button
       >

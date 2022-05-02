@@ -15,14 +15,14 @@
         <el-input-number
           v-model="resize.width"
           :min="1"
-          :max="props.imageSize.current.width"
+          :max="imageSize.current.width"
           controls-position="right"
           @change="onChangeResizeWidth" />
         <span>×</span>
         <el-input-number
           v-model="resize.height"
           :min="1"
-          :max="props.imageSize.current.height"
+          :max="imageSize.current.height"
           controls-position="right"
           @change="onChangeResizeHeight" />
         <span>px</span>
