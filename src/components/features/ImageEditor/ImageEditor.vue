@@ -66,15 +66,15 @@ import {
 import { UploadFile } from 'element-plus';
 import { Download, RefreshLeft, Back } from '@element-plus/icons-vue';
 
-import ImageEditorInformation from '../components/ImageEditorInformation.vue';
-import ImageEditorResize from '../components/ImageEditorResize.vue';
+import ImageEditorMenu from '@/components/features/ImageEditor/ImageEditorMenu.vue';
+import ImageEditorInformation from '@/components/features/ImageEditor/ImageEditorInformation.vue';
+import ImageEditorResize from '@/components/features/ImageEditor/ImageEditorResize.vue';
 
-import { useLoading } from '../composables/useLoading';
-import { useMessage } from '../composables/useMessage';
+import { useLoading } from '@/composables/useLoading';
+import { useMessage } from '@/composables/useMessage';
 
-import { UploadImage } from '../types/uploadImage';
-import { CanvasSetting } from '../types/canvasSetting';
-import ImageEditorMenu from './ImageEditorMenu.vue';
+import { UploadImage } from '@/types/uploadImage';
+import { CanvasSetting } from '@/types/canvasSetting';
 
 const props = defineProps<{
   uploadFile: UploadFile | undefined;
@@ -759,7 +759,6 @@ const resizeCanvasImage = () => {
 
   image.src = base64;
 };
-
 
 const downloadImage = () => {
   if (displayCanvas.value === undefined) return;

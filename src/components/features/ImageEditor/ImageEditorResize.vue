@@ -40,7 +40,7 @@
 import { reactive, watchEffect } from 'vue';
 import { QuestionFilled } from '@element-plus/icons-vue';
 
-import { UploadImage } from '../types/uploadImage';
+import { UploadImage } from '@/types/uploadImage';
 
 const props = defineProps<{
   uploadImage: UploadImage;

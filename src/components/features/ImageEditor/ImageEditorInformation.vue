@@ -17,8 +17,8 @@
 </template>
 
 <script setup lang="ts">
-import { UploadImage } from '../types/uploadImage';
-import { CanvasSetting } from '../types/canvasSetting';
+import { UploadImage } from '@/types/uploadImage';
+import { CanvasSetting } from '@/types/canvasSetting';
 
 const props = defineProps<{
   uploadImage: UploadImage;
