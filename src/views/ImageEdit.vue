@@ -8,7 +8,7 @@
       <ImageEditor
         v-else
         :upload-file="uploadFile"
-        @return-uploader="showUploader" />
+        :return-uploader="showUploader" />
     </main>
   </div>
 </template>

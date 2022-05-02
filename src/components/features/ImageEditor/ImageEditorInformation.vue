@@ -2,14 +2,14 @@
   <div class="image-information">
     <h2 class="heading">編集情報</h2>
     <p class="text">
-      現在のサイズ：{{ props.uploadImage.currentSize.width }} ×
-      {{ props.uploadImage.currentSize.height }} px
+      現在のサイズ：{{ props.imageSize.current.width }} ×
+      {{ props.imageSize.current.height }} px
     </p>
     <p class="text">
       選択範囲：
-      <template v-if="props.canvas.hasRect"
-        >{{ props.uploadImage.cropSize.width }} ×
-        {{ props.uploadImage.cropSize.height }} px</template
+      <template v-if="props.canvasState.hasRect"
+        >{{ props.imageSize.crop.width }} ×
+        {{ props.imageSize.crop.height }} px</template
       >
       <template v-else>未選択</template>
     </p>
@@ -17,12 +17,12 @@
 </template>
 
 <script setup lang="ts">
-import { UploadImage } from '@/types/uploadImage';
-import { CanvasSetting } from '@/types/canvasSetting';
+import { ImageSize } from '@/types/ImageSize';
+import { CanvasState } from '@/types/canvas';
 
 const props = defineProps<{
-  uploadImage: UploadImage;
-  canvas: CanvasSetting;
+  imageSize: ImageSize;
+  canvasState: CanvasState;
 }>();
 </script>
 

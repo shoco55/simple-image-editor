@@ -1,5 +1,11 @@
-export interface CanvasSetting {
+export interface CanvasState {
   displayReductionRatio: number;
+  clickableRange: number;
+  isMouseDown: boolean;
+  hasRect: boolean;
+}
+
+export interface CanvasPosition {
   mouseDownX: number;
   mouseDownY: number;
   mouseMoveX: number;
@@ -12,8 +18,4 @@ export interface CanvasSetting {
   rectStartY: number;
   rectEndX: number;
   rectEndY: number;
-  clickableRange: number;
-  isMouseDown: boolean;
-  isMouseWithinRect: boolean;
-  hasRect: boolean;
 }

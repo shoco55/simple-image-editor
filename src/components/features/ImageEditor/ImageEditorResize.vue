@@ -15,14 +15,14 @@
         <el-input-number
           v-model="resize.width"
           :min="1"
-          :max="props.uploadImage.currentSize.width"
+          :max="props.imageSize.current.width"
           controls-position="right"
           @change="onChangeResizeWidth" />
         <span>×</span>
         <el-input-number
           v-model="resize.height"
           :min="1"
-          :max="props.uploadImage.currentSize.height"
+          :max="props.imageSize.current.height"
           controls-position="right"
           @change="onChangeResizeHeight" />
         <span>px</span>
@@ -40,15 +40,12 @@
 import { reactive, watchEffect } from 'vue';
 import { QuestionFilled } from '@element-plus/icons-vue';
 
-import { UploadImage } from '@/types/uploadImage';
+import { ImageSize } from '@/types/image';
 
 const props = defineProps<{
-  uploadImage: UploadImage;
-}>();
-
-const emit = defineEmits<{
-  (e: 'setImageResize', width: number, height: number): void;
-  (e: 'resizeCanvasImage'): void;
+  imageSize: ImageSize;
+  updateImageResize: (width: number, height: number) => void;
+  resizeCanvasImage: () => void;
 }>();
 
 const resize: {
@@ -60,8 +57,8 @@ const resize: {
 });
 
 watchEffect(() => {
-  resize.width = props.uploadImage.resize.width;
-  resize.height = props.uploadImage.resize.height;
+  resize.width = props.imageSize.resize.width;
+  resize.height = props.imageSize.resize.height;
 });
 
 const onChangeResizeWidth = (currentValue: number) => {
@@ -77,16 +74,10 @@ const changeResizeSideSize = (
   changedSize: 'width' | 'height'
 ) => {
   const sideSize = changedSize === 'width' ? 'height' : 'width';
-  const ratio = currentValue / props.uploadImage.currentSize[changedSize];
-  resize[sideSize] = Math.round(
-    props.uploadImage.currentSize[sideSize] * ratio
-  );
+  const ratio = currentValue / props.imageSize.current[changedSize];
+  resize[sideSize] = Math.round(props.imageSize.current[sideSize] * ratio);
 
-  emit('setImageResize', resize.width, resize.height);
-};
-
-const resizeCanvasImage = () => {
-  emit('resizeCanvasImage');
+  props.updateImageResize(resize.width, resize.height);
 };
 </script>
 
