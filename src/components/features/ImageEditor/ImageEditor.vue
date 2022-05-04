@@ -60,6 +60,8 @@ import { useImageData } from '@/composables/useImageData';
 import { useCanvasState } from '@/composables/useCanvasState';
 import { useCanvasPosition } from '@/composables/useCanvasPosition';
 import { useCanvasCursorStyle } from '@/composables/useCanvasCursorStyle';
+import { useLoadFileReader } from '@/composables/useLoadFileReader';
+import { useLoadImage } from '@/composables/useLoadImage';
 import { useFileDownload } from '@/composables/useFileDownload';
 import { useBase64toBlob } from '@/composables/useBase64toBlob';
 import { useLoading } from '@/composables/useLoading';
@@ -82,6 +84,13 @@ const displayCanvasCtx = ref<CanvasRenderingContext2D | null>();
 
 const drawingCanvas = ref<HTMLCanvasElement>();
 const drawingCanvasCtx = ref<CanvasRenderingContext2D | null>();
+
+watchEffect(() => {
+  if (displayCanvas.value === undefined) return;
+  if (drawingCanvas.value === undefined) return;
+  drawingCanvas.value.width = displayCanvas.value.width;
+  drawingCanvas.value.height = displayCanvas.value.height;
+});
 
 const {
   imageData,
@@ -114,19 +123,15 @@ const { getCanvasCursorStyle } = useCanvasCursorStyle(
   canvasPosition
 );
 
+const { loadImage } = useLoadImage();
+const { loadFileReader } = useLoadFileReader();
 const { downloadFile } = useFileDownload();
 const { convertBase64toBlob } = useBase64toBlob();
 
 const { isLoading, openLoading, closeLoading } = useLoading();
 const { showMessage } = useMessage();
 
-watchEffect(() => {
-  const cropWidth = canvasPosition.tempRectEndX - canvasPosition.tempRectStartX;
-  const cropHeght = canvasPosition.tempRectEndY - canvasPosition.tempRectStartY;
-  updateImageCropSize(cropWidth, cropHeght);
-});
-
-const setCanvasContainerSize = (width: number, height: number) => {
+const updateCanvasContainerSize = (width: number, height: number) => {
   if (canvasContainer.value === undefined) return;
   canvasContainer.value.style.width =
     width * canvasState.displayReductionRatio + 'px';
@@ -134,11 +139,21 @@ const setCanvasContainerSize = (width: number, height: number) => {
     height * canvasState.displayReductionRatio + 'px';
 };
 
-const setDrawingCanvasSize = (width: number, height: number) => {
+const updateCanvasSize = (width: number, height: number) => {
+  if (displayCanvas.value === undefined) return;
+  displayCanvas.value.width = width;
+  displayCanvas.value.height = height;
+
   if (drawingCanvas.value === undefined) return;
   drawingCanvas.value.width = width;
   drawingCanvas.value.height = height;
 };
+
+watchEffect(() => {
+  const cropWidth = canvasPosition.tempRectEndX - canvasPosition.tempRectStartX;
+  const cropHeght = canvasPosition.tempRectEndY - canvasPosition.tempRectStartY;
+  updateImageCropSize(cropWidth, cropHeght);
+});
 
 const calculateCanvasDisplayReductionRatio = () => {
   if (displayCanvas.value === undefined) return;
@@ -148,64 +163,52 @@ const calculateCanvasDisplayReductionRatio = () => {
   );
 };
 
-const setCanvasImage = () => {
-  openLoading();
+const setCanvasImage = async () => {
+  try {
+    openLoading();
 
-  if (displayCanvas.value === undefined || drawingCanvas.value === undefined)
-    return;
-  displayCanvasCtx.value = displayCanvas.value.getContext('2d');
-  drawingCanvasCtx.value = drawingCanvas.value.getContext('2d');
+    updateOriginalImageFile(props.uploadFile?.raw);
 
-  updateOriginalImageFile(props.uploadFile?.raw);
+    if (imageData.originalImageFile === undefined) throw new Error();
 
-  if (imageData.originalImageFile === undefined) return;
+    const fileReaderResult = await loadFileReader(imageData.originalImageFile);
+    const image = await loadImage(fileReaderResult as string);
 
-  const image = new Image();
-  image.crossOrigin = 'anonymous';
+    const width = image.width;
+    const height = image.height;
 
-  const fileReader = new FileReader();
+    if (displayCanvas.value === undefined || drawingCanvas.value === undefined)
+      return;
+    displayCanvasCtx.value = displayCanvas.value.getContext('2d');
+    drawingCanvasCtx.value = drawingCanvas.value.getContext('2d');
 
-  fileReader.onload = (event) => {
-    image.onload = () => {
-      const width = image.width;
-      const height = image.height;
+    updateCanvasSize(width, height);
+    updateImageCurrentSize(width, height);
 
-      if (displayCanvas.value === undefined) return;
-      displayCanvas.value.width = width;
-      displayCanvas.value.height = height;
+    calculateCanvasDisplayReductionRatio();
+    updateCanvasContainerSize(width, height);
 
-      calculateCanvasDisplayReductionRatio();
-      updateImageCurrentSize(width, height);
-      setCanvasContainerSize(width, height);
-      setDrawingCanvasSize(width, height);
-
-      displayCanvasCtx.value?.drawImage(image, 0, 0);
-
-      closeLoading();
-    };
-    image.onerror = () => {
-      showMessage(
-        'error',
-        '画像の読み込みに失敗しました。しばらく経ってから、もう一度お試しください。',
-        true
-      );
-      props.returnUploader();
-    };
-
-    const result = event.target?.result;
-    image.src = result as string;
-  };
-  fileReader.readAsDataURL(imageData.originalImageFile);
+    displayCanvasCtx.value?.drawImage(image, 0, 0);
+  } catch {
+    showMessage(
+      'error',
+      '画像の読み込みに失敗しました。アプリの不具合の可能性があるため、アプリ管理者にご連絡ください。',
+      true
+    );
+    props.returnUploader();
+  } finally {
+    closeLoading();
+  }
 };
 
-const initializeCanvasRect = () => {
+const initializeCanvasRectData = () => {
   initializeRectPosition();
   updateHasRect(false);
 };
 
 const resetCanvasImage = () => {
   initializeDrawingCanvas();
-  initializeCanvasRect();
+  initializeCanvasRectData();
   setCanvasImage();
 };
 
@@ -321,30 +324,29 @@ const onMouseUpWindow = () => {
   saveRectPosition();
 };
 
-const cropCanvasImage = () => {
-  openLoading();
-
+const cropCanvasImage = async () => {
   if (imageSize.crop.width === 0 || imageSize.crop.height === 0) return;
 
-  if (displayCanvas.value === undefined) return;
-  const base64 = displayCanvas.value.toDataURL(
-    imageData.originalImageFile?.type
-  );
-  const image = new Image();
+  try {
+    openLoading();
 
-  image.onload = () => {
+    if (displayCanvas.value === undefined) return;
     if (displayCanvasCtx.value == undefined) return;
+
+    const base64 = displayCanvas.value.toDataURL(
+      imageData.originalImageFile?.type
+    );
+
+    const image = await loadImage(base64);
+
     const width = imageSize.crop.width;
     const height = imageSize.crop.height;
 
-    if (displayCanvas.value === undefined) return;
-    displayCanvas.value.width = width;
-    displayCanvas.value.height = height;
+    updateCanvasSize(width, height);
+    updateImageCurrentSize(width, height);
 
     calculateCanvasDisplayReductionRatio();
-    updateImageCurrentSize(width, height);
-    setCanvasContainerSize(width, height);
-    setDrawingCanvasSize(width, height);
+    updateCanvasContainerSize(width, height);
 
     displayCanvasCtx.value.drawImage(
       image,
@@ -358,35 +360,37 @@ const cropCanvasImage = () => {
       height
     );
 
-    initializeCanvasRect();
+    initializeCanvasRectData();
+  } catch (error) {
+    showMessage(
+      'error',
+      '画像のトリミングに失敗しました。アプリの不具合の可能性があるため、アプリ管理者にご連絡ください。',
+      true
+    );
+  } finally {
     closeLoading();
-  };
-
-  image.src = base64;
+  }
 };
 
-const rotateCanvasImage = (direction: 'left' | 'right') => {
-  openLoading();
+const rotateCanvasImage = async (direction: 'left' | 'right') => {
+  try {
+    openLoading();
 
-  initializeDrawingCanvas();
-
-  if (displayCanvas.value === undefined) return;
-  const base64 = displayCanvas.value.toDataURL(
-    imageData.originalImageFile?.type
-  );
-  const image = new Image();
-
-  image.onload = () => {
     if (displayCanvas.value === undefined) return;
+    const base64 = displayCanvas.value.toDataURL(
+      imageData.originalImageFile?.type
+    );
+
+    const image = await loadImage(base64);
+
     const width = displayCanvas.value.height;
     const height = displayCanvas.value.width;
 
-    displayCanvas.value.width = width;
-    displayCanvas.value.height = height;
-
+    updateCanvasSize(width, height);
     updateImageCurrentSize(width, height);
-    setCanvasContainerSize(width, height);
-    setDrawingCanvasSize(width, height);
+
+    calculateCanvasDisplayReductionRatio();
+    updateCanvasContainerSize(width, height);
 
     const degree = direction === 'right' ? 90 : -90;
 
@@ -398,41 +402,51 @@ const rotateCanvasImage = (direction: 'left' | 'right') => {
     displayCanvasCtx.value.drawImage(image, 0, 0);
     displayCanvasCtx.value.restore();
 
-    initializeCanvasRect();
+    initializeCanvasRectData();
+  } catch (error) {
+    showMessage(
+      'error',
+      '画像の回転に失敗しました。アプリの不具合の可能性があるため、アプリ管理者にご連絡ください。',
+      true
+    );
+  } finally {
     closeLoading();
-  };
-
-  image.src = base64;
+  }
 };
 
-const resizeCanvasImage = () => {
-  if (displayCanvas.value === undefined) return;
-  const base64 = displayCanvas.value.toDataURL(
-    imageData.originalImageFile?.type
-  );
-  const image = new Image();
+const resizeCanvasImage = async () => {
+  try {
+    openLoading();
 
-  image.onload = () => {
+    if (displayCanvas.value === undefined) return;
+    const base64 = displayCanvas.value.toDataURL(
+      imageData.originalImageFile?.type
+    );
+
+    const image = await loadImage(base64);
+
     if (displayCanvasCtx.value == undefined) return;
     const width = imageSize.resize.width;
     const height = imageSize.resize.height;
 
-    if (displayCanvas.value === undefined) return;
-    displayCanvas.value.width = width;
-    displayCanvas.value.height = height;
+    updateCanvasSize(width, height);
+    updateImageCurrentSize(width, height);
 
     calculateCanvasDisplayReductionRatio();
-    updateImageCurrentSize(width, height);
-    setCanvasContainerSize(width, height);
-    setDrawingCanvasSize(width, height);
+    updateCanvasContainerSize(width, height);
 
     displayCanvasCtx.value.drawImage(image, 0, 0, width, height);
 
-    initializeCanvasRect();
+    initializeCanvasRectData();
+  } catch (error) {
+    showMessage(
+      'error',
+      '画像のリサイズに失敗しました。アプリの不具合の可能性があるため、アプリ管理者にご連絡ください。',
+      true
+    );
+  } finally {
     closeLoading();
-  };
-
-  image.src = base64;
+  }
 };
 
 const onClickDownload = () => {
