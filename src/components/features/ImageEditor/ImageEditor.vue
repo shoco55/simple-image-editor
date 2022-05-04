@@ -7,7 +7,7 @@
           :crop-canvas-image="cropCanvasImage"
           :rotate-canvas-image="rotateCanvasImage" />
         <div class="image-canvas">
-          <div ref="canvasContainer" class="image-canvas">
+          <div ref="canvasContainer" class="image-canvas-container">
             <canvas ref="displayCanvas" class="display" />
             <canvas
               ref="drawingCanvas"
@@ -497,7 +497,7 @@ onBeforeUnmount(() => {
   }
 }
 
-.image-canvas {
+.image-canvas-container {
   position: relative;
   > .display,
   > .drawing {
