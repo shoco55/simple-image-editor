@@ -163,6 +163,14 @@ const calculateCanvasDisplayReductionRatio = () => {
   );
 };
 
+const updateAroundCanvasSize = (width: number, height: number) => {
+  updateCanvasSize(width, height);
+  updateImageCurrentSize(width, height);
+
+  calculateCanvasDisplayReductionRatio();
+  updateCanvasContainerSize(width, height);
+};
+
 const setCanvasImage = async () => {
   try {
     openLoading();
@@ -182,11 +190,7 @@ const setCanvasImage = async () => {
     displayCanvasCtx.value = displayCanvas.value.getContext('2d');
     drawingCanvasCtx.value = drawingCanvas.value.getContext('2d');
 
-    updateCanvasSize(width, height);
-    updateImageCurrentSize(width, height);
-
-    calculateCanvasDisplayReductionRatio();
-    updateCanvasContainerSize(width, height);
+    updateAroundCanvasSize(width, height);
 
     displayCanvasCtx.value?.drawImage(image, 0, 0);
   } catch {
@@ -342,11 +346,7 @@ const cropCanvasImage = async () => {
     const width = imageSize.crop.width;
     const height = imageSize.crop.height;
 
-    updateCanvasSize(width, height);
-    updateImageCurrentSize(width, height);
-
-    calculateCanvasDisplayReductionRatio();
-    updateCanvasContainerSize(width, height);
+    updateAroundCanvasSize(width, height);
 
     displayCanvasCtx.value.drawImage(
       image,
@@ -386,11 +386,7 @@ const rotateCanvasImage = async (direction: 'left' | 'right') => {
     const width = displayCanvas.value.height;
     const height = displayCanvas.value.width;
 
-    updateCanvasSize(width, height);
-    updateImageCurrentSize(width, height);
-
-    calculateCanvasDisplayReductionRatio();
-    updateCanvasContainerSize(width, height);
+    updateAroundCanvasSize(width, height);
 
     const degree = direction === 'right' ? 90 : -90;
 
@@ -429,11 +425,7 @@ const resizeCanvasImage = async () => {
     const width = imageSize.resize.width;
     const height = imageSize.resize.height;
 
-    updateCanvasSize(width, height);
-    updateImageCurrentSize(width, height);
-
-    calculateCanvasDisplayReductionRatio();
-    updateCanvasContainerSize(width, height);
+    updateAroundCanvasSize(width, height);
 
     displayCanvasCtx.value.drawImage(image, 0, 0, width, height);
 
