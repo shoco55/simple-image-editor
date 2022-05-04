@@ -30,7 +30,7 @@ import { ref } from 'vue';
 import { UploadFile } from 'element-plus';
 import { Upload } from '@element-plus/icons-vue';
 
-import { useMessage } from '../composables/useMessage';
+import { useMessage } from '@/composables/useMessage';
 
 const { showMessage } = useMessage();
 

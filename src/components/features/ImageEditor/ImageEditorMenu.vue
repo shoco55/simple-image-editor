@@ -13,7 +13,7 @@
       <el-button
         type="primary"
         plain
-        :disabled="!props.canCrop"
+        :disabled="!canCrop"
         @click="cropCanvasImage"
         >選択範囲をトリミング</el-button
       >
@@ -32,20 +32,9 @@ import { QuestionFilled } from '@element-plus/icons-vue';
 
 const props = defineProps<{
   canCrop: boolean;
+  cropCanvasImage: () => void;
+  rotateCanvasImage: (direction: 'right' | 'left') => void;
 }>();
-
-const emit = defineEmits<{
-  (e: 'cropCanvasImage'): void;
-  (e: 'rotateCanvasImage', direction: 'right' | 'left'): void;
-}>();
-
-const cropCanvasImage = () => {
-  emit('cropCanvasImage');
-};
-
-const rotateCanvasImage = (direction: 'right' | 'left') => {
-  emit('rotateCanvasImage', direction);
-};
 </script>
 
 <style scoped lang="scss">

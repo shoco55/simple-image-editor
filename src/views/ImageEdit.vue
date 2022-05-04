@@ -8,7 +8,7 @@
       <ImageEditor
         v-else
         :upload-file="uploadFile"
-        @return-uploader="showUploader" />
+        :return-uploader="showUploader" />
     </main>
   </div>
 </template>
@@ -17,9 +17,9 @@
 import { ref } from 'vue';
 import { UploadFile } from 'element-plus';
 
-import TheHeader from '../components/TheHeader.vue';
-import ImageUploader from '../components/ImageUploader.vue';
-import ImageEditor from '../components/ImageEditor.vue';
+import TheHeader from '@/components/common/TheHeader.vue';
+import ImageUploader from '@/components/features/ImageUploader/ImageUploader.vue';
+import ImageEditor from '@/components/features/ImageEditor/ImageEditor.vue';
 
 const activeScreen = ref<'uploader' | 'editor'>('uploader');
 
