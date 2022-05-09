@@ -8,7 +8,8 @@
     "preview": "vite preview",
     "lint": "eslint --fix src/*.{ts,vue} && eslint --fix src/**/*.{ts,vue}",
     "format": "prettier -w src/*.{ts,vue} && prettier -w src/**/*.{ts,vue}",
-    "fix": "yarn format && yarn lint"
+    "fix": "yarn format && yarn lint",
+    "deploy": "gh-pages -d dist"
   },
   "dependencies": {
     "@element-plus/icons-vue": "^1.1.4",
@@ -27,6 +28,7 @@
     "eslint": "^8.11.0",
     "eslint-plugin-vue": "^8.5.0",
     "eslint-plugin-vue-scoped-css": "^2.2.0",
+    "gh-pages": "^3.2.3",
     "prettier": "^2.6.0",
     "sass": "^1.49.9",
     "typescript": "^4.5.4",
